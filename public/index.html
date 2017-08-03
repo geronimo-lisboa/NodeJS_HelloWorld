@@ -1,14 +1,55 @@
 ﻿<!DOCTYPE html>
 <link rel="stylesheet" type="text/css" href="index.css" />
+<script type="text/javascript">
+    var gl;//A variável do opengl
+    var projectionMatrix, viewMatrix, modelMatrix;
+
+    function initMatrices() {
+        
+    function initMatrices()
+    {
+	   modelMatrix = new Float32Array(
+	           [1, 0, 0, 0,
+	            0, 1, 0, 0, 
+	            0, 0, 1, 0, 
+	            0, 0, -3.333, 1]);
+        viewMatrix = new Float32Array(
+               [1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1]);
+	   projectionMatrix = new Float32Array(
+	           [2.41421, 0, 0, 0,
+	            0, 2.41421, 0, 0,
+	            0, 0, -1.002002, -1, 
+	            0, 0, -0.2002002, 0]);
+
+    }
+
+    window.onload(() => {
+        try {
+            let canvas = document.getElementById("webglcanvas");//Pega o objeto da canvas
+            gl = canvas.getContext("experimental-webgl");//Cria o contexto
+            gl.viewport(0, 0, canvas.width, canvas.height);//cria a viewport
+            initMatrices();//Inicialização das matrizes aqui
+        } catch (e) {
+            const msg = "Erro na criação do contexto: " + e.toString();
+            alert(msg);
+            throw Error(msg);
+        }
+    });
+</script>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title></title>
 </head>
 <body>
 <div id="div_externa">
     <div id="titulo" class="titulo">Boa Noite</div>
-    <div id ="texto" class ="texto">LOREN IPSUN DOLOR SIT AMET</div>
+    <div id="texto" class="texto">
+        <canvas id="webglcanvas" width="640" height="480"></canvas>
+    </div>
 </div>
 </body>
 </html>
