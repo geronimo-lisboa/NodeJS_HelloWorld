@@ -45,7 +45,17 @@
             -.5, -.5, 0.0
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-        var square = { buffer: vertexBuffer, vertSize: 3, nVerts: 4, primtype: gl.TRIANGLE_STRIP };
+
+        colorBuffer = gl.createBuffer();
+        var colors = [
+            0.0, 0.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0,
+            1.0, 1.0, 1.0, 1.0,
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        var square = { buffer: vertexBuffer, cBuffer:colorBuffer, vertSize: 3, nVerts: 4, primtype: gl.TRIANGLE_STRIP };
         return square;
     }
     function createShader(gl, str, type) {
@@ -69,13 +79,12 @@
     var vertexShaderSource =
             " precision highp float;\n" +
             "    attribute vec3 vertexPos;\n" +
+            "    attribute vec4 vertexColor;\n"+
             "    uniform mat4 modelViewMatrix;\n" +
             "    uniform mat4 projectionMatrix;\n" +
             "    varying vec4 vColor;\n"+
             "    void main(void) {\n" +
-            "		// Return the transformed and projected vertex value\n" +
-            "       gl_Position = vec4(vertexPos, 1.0);\n" +
-            "       vColor = vec4(vertexPos, 1.0);\n"+
+            "        vColor = vertexColor;\n"+
             "        gl_Position = projectionMatrix * modelViewMatrix * \n" +
             "            vec4(vertexPos, 1.0);\n" +
             "    }\n";
@@ -86,7 +95,7 @@
             "    // Return the pixel color: always output white\n" +
             "    gl_FragColor = vColor;\n" +
             "}\n";
-    var shaderProgram, shaderVertexPositionAttribute, shaderProjectionMatrixUniform, shaderModelViewMatrixUniform;
+    var shaderProgram, shaderVertexPositionAttribute, shaderVertexColorAttribute, shaderProjectionMatrixUniform, shaderModelViewMatrixUniform;
     function initShader(gl) {
         // load and compile the fragment and vertex shader
         //var fragmentShader = getShader(gl, "fragmentShader");
@@ -101,6 +110,8 @@
         // get pointers to the shader params
         shaderVertexPositionAttribute = gl.getAttribLocation(shaderProgram, "vertexPos");
         gl.enableVertexAttribArray(shaderVertexPositionAttribute);
+        shaderVertexColorAttribute = gl.getAttribLocation(shaderProgram, "vertexColor");
+        gl.enableVertexAttribArray(shaderVertexColorAttribute);
 
         shaderProjectionMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
         shaderModelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
@@ -119,6 +130,10 @@
         gl.useProgram(shaderProgram);
         // connect up the shader parameters: vertex position and projection/model matrices
         gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.cBuffer);
+        gl.vertexAttribPointer(shaderVertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+
         gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
         gl.uniformMatrix4fv(shaderModelViewMatrixUniform, false, modelViewMatrix);
         // draw the object
