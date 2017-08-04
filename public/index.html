@@ -35,37 +35,33 @@
     }
     // Create the vertex data for a square to be drawn
     function createSquare(gl) {
-        var fetchedObject;
-        fetchedObject = fetch('http://localhost:40000/testeObjeto.json')
-              .then(response => {
-                  if (response.status === 200 || response.status === 0) {
-                      return Promise.resolve(response);
-                  } else {
-                      return Promise.reject(new Error(response.statusText));
-                  }
-              })
-              .then(response => {
-                  return response.json();
-              })
-              .then(function(data) {
-                  return fetchedObject = data;
-              })
-              .catch(function(error) {
-                  alert(error);
-              }
-              );
-        var square;
-        fetchedObject.then()//Aqui fetched object já existe
-        {
-            console.log(fetchedObject);
-            fetchedObject.vertexBufferId = gl.createBuffer();//cria o buffer
-            gl.bindBuffer(gl.ARRAY_BUFFER, fetchedObject.vertexBufferId);//agora trabalho com o buffer criado
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fetchedObject.geometry), gl.STATIC_DRAW);//passo a array pra placa de video
-            fetchedObject.colorBufferId = gl.createBuffer();//cria o outro buffer, o da cor
-            gl.bindBuffer(gl.ARRAY_BUFFER, fetchedObject.colorBufferId);//trabalha agora com o buffer da cor
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fetchedObject.color), gl.STATIC_DRAW);//passa a cor
-            square = fetchedObject;
-        };
+        var vertexBuffer;
+        vertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        var verts = [
+            .5, .5, 0.0,
+            -.5, .5, 0.0,
+            .5, -.5, 0.0,
+
+            .5, -.5, 0.0,
+            -.5, .5, 0.0,
+            -.5, -.5, 0.0
+        ];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+        colorBuffer = gl.createBuffer();
+        var colors = [
+            0.0, 0.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0,
+
+            0.0, 0.0, 1.0, 1.0,
+            0.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0,
+        ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        var square = { buffer: vertexBuffer, cBuffer:colorBuffer, vertSize: 3, nVerts: 6, primtype: gl.TRIANGLES };
         return square;
     }
     function createShader(gl, str, type) {
@@ -87,7 +83,7 @@
     }
 
     var vertexShaderSource =
-            " precision highp float;\n" +
+        " precision highp float;\n" +
             "    attribute vec3 vertexPos;\n" +
             "    attribute vec4 vertexColor;\n"+
             "    uniform mat4 modelViewMatrix;\n" +
@@ -131,16 +127,18 @@
         }
     }
     function draw(gl, obj) {
+        // clear the background (with black)
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
-       
+        // set the vertex buffer to be drawn
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
+        // set the shader to use
         gl.useProgram(shaderProgram);
         // connect up the shader parameters: vertex position and projection/model matrices
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj.vertexBufferId);
-        gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertexSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj.colorBufferId);
-        gl.vertexAttribPointer(shaderVertexColorAttribute, obj.colorSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.cBuffer);
+        gl.vertexAttribPointer(shaderVertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
         gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
         gl.uniformMatrix4fv(shaderModelViewMatrixUniform, false, modelViewMatrix);
