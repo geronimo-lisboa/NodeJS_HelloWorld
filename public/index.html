@@ -42,6 +42,9 @@
             .5, .5, 0.0,
             -.5, .5, 0.0,
             .5, -.5, 0.0,
+
+            .5, -.5, 0.0,
+            -.5, .5, 0.0,
             -.5, -.5, 0.0
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
@@ -51,11 +54,14 @@
             0.0, 0.0, 0.0, 1.0,
             1.0, 0.0, 0.0, 1.0,
             1.0, 1.0, 0.0, 1.0,
+
+            0.0, 0.0, 1.0, 1.0,
+            0.0, 1.0, 1.0, 1.0,
             1.0, 1.0, 1.0, 1.0,
         ];
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        var square = { buffer: vertexBuffer, cBuffer:colorBuffer, vertSize: 3, nVerts: 4, primtype: gl.TRIANGLE_STRIP };
+        var square = { buffer: vertexBuffer, cBuffer:colorBuffer, vertSize: 3, nVerts: 6, primtype: gl.TRIANGLES };
         return square;
     }
     function createShader(gl, str, type) {
