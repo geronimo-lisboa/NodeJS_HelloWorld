@@ -1,6 +1,8 @@
 ﻿<!DOCTYPE html>
 <link rel="stylesheet" type="text/css" href="index.css" />
 <script type="text/javascript">
+    var GlobalSquare = undefined;
+
     function initWebGL(canvas) {
         var gl;
         try {
@@ -35,34 +37,54 @@
     }
     // Create the vertex data for a square to be drawn
     function createSquare(gl) {
-        var vertexBuffer;
-        vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        var verts = [
-            .5, .5, 0.0,
-            -.5, .5, 0.0,
-            .5, -.5, 0.0,
 
-            .5, -.5, 0.0,
-            -.5, .5, 0.0,
-            -.5, -.5, 0.0
-        ];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        var result = fetch('http://localhost:40000/testeObjeto.json')
+            .then(response => {
+                if (response.status === 200 || response.status === 0) {
+                    return Promise.resolve(response);
+                } else {
+                    return Promise.reject(new Error(response.statusText));
+                }
+            })
+            .then(response => {
+                return response.json();
+            })
+            .then(function (data) {
+                var vertexBuffer;
+                vertexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+                var verts = [
+                    .5, .5, 0.0,
+                    -.5, .5, 0.0,
+                    .5, -.5, 0.0,
 
-        colorBuffer = gl.createBuffer();
-        var colors = [
-            0.0, 0.0, 0.0, 1.0,
-            1.0, 0.0, 0.0, 1.0,
-            1.0, 1.0, 0.0, 1.0,
+                    .5, -.5, 0.0,
+                    -.5, .5, 0.0,
+                    -.5, -.5, 0.0
+                ];
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
-            0.0, 0.0, 1.0, 1.0,
-            0.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0,
-        ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        var square = { buffer: vertexBuffer, cBuffer:colorBuffer, vertSize: 3, nVerts: 6, primtype: gl.TRIANGLES };
-        return square;
+                colorBuffer = gl.createBuffer();
+                var colors = [
+                    0.0, 0.0, 0.0, 1.0,
+                    1.0, 0.0, 0.0, 1.0,
+                    1.0, 1.0, 0.0, 1.0,
+
+                    0.0, 0.0, 1.0, 1.0,
+                    0.0, 1.0, 1.0, 1.0,
+                    1.0, 1.0, 1.0, 1.0,
+                ];
+                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+                var square = { buffer: vertexBuffer, cBuffer: colorBuffer, vertSize: 3, nVerts: 6, primtype: gl.TRIANGLES };
+                GlobalSquare = square;
+                return square;
+            })
+            .catch(function (error) {
+                    alert(error);
+                }
+            );
+        
     }
     function createShader(gl, str, type) {
         var shader;
@@ -127,23 +149,28 @@
         }
     }
     function draw(gl, obj) {
-        // clear the background (with black)
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        // set the vertex buffer to be drawn
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
-        // set the shader to use
-        gl.useProgram(shaderProgram);
-        // connect up the shader parameters: vertex position and projection/model matrices
-        gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
+        if (GlobalSquare) {
+            // clear the background (with black)
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            // set the vertex buffer to be drawn
+            gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
+            // set the shader to use
+            gl.useProgram(shaderProgram);
+            // connect up the shader parameters: vertex position and projection/model matrices
+            gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj.cBuffer);
-        gl.vertexAttribPointer(shaderVertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, obj.cBuffer);
+            gl.vertexAttribPointer(shaderVertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
-        gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
-        gl.uniformMatrix4fv(shaderModelViewMatrixUniform, false, modelViewMatrix);
-        // draw the object
-        gl.drawArrays(obj.primtype, 0, obj.nVerts);
+            gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
+            gl.uniformMatrix4fv(shaderModelViewMatrixUniform, false, modelViewMatrix);
+            // draw the object
+            gl.drawArrays(obj.primtype, 0, obj.nVerts);
+        } else {
+            gl.clearColor(5.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+        }
     }
 
     window.onload = function () {
@@ -151,12 +178,13 @@
         var gl = initWebGL(canvas);
         initViewport(gl, canvas);
         initMatrices();
-        var square = createSquare(gl);
+        //var square = createSquare(gl);
+        createSquare(gl);
         initShader(gl);
-        draw(gl, square);
+        draw(gl, GlobalSquare);
         //Começa a renderização. ontimerCallback é a função onde a renderização ocorre
         var ontimerCallback = function () {
-            draw(gl, square);
+            draw(gl, GlobalSquare);
             setInterval(ontimerCallback, 500);
         }
         setInterval(ontimerCallback, 500);
