@@ -1,24 +1,12 @@
 ﻿<!DOCTYPE html>
 <link rel="stylesheet" type="text/css" href="index.css" />
+<script type="text/javascript" src="myOpenGL.js"></script>
 <script type="text/javascript">
     var GlobalSquare = undefined;
 
-    function initWebGL(canvas) {
-        var gl;
-        try {
-            gl = canvas.getContext("experimental-webgl");
-        }
-        catch (e) {
-            var msg = "Error creating WebGL Context!: " + e.toString();
-            alert(msg);
-            throw Error(msg);
-        }
-        return gl;
-    }
-    function initViewport(gl, canvas) {
-        gl.viewport(0, 0, canvas.width, canvas.height);
-    }
+
     var projectionMatrix, modelViewMatrix;
+
     function initMatrices() {
         // The transform matrix for the square - translate back in Z for the camera
         modelViewMatrix = new Float32Array(
@@ -109,30 +97,30 @@
             "    gl_FragColor = vColor;\n" +
             "}\n";
     var shaderProgram, shaderVertexPositionAttribute, shaderVertexColorAttribute, shaderProjectionMatrixUniform, shaderModelViewMatrixUniform;
-    function initShader(gl) {
-        // load and compile the fragment and vertex shader
-        //var fragmentShader = getShader(gl, "fragmentShader");
-        //var vertexShader = getShader(gl, "vertexShader");
-        var fragmentShader = createShader(gl, fragmentShaderSource, "fragment");
-        var vertexShader = createShader(gl, vertexShaderSource, "vertex");
-        // link them together into a new program
-        shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
-        gl.linkProgram(shaderProgram);
-        // get pointers to the shader params
-        shaderVertexPositionAttribute = gl.getAttribLocation(shaderProgram, "vertexPos");
-        gl.enableVertexAttribArray(shaderVertexPositionAttribute);
-        shaderVertexColorAttribute = gl.getAttribLocation(shaderProgram, "vertexColor");
-        gl.enableVertexAttribArray(shaderVertexColorAttribute);
+    //function initShader(gl) {
+    //    // load and compile the fragment and vertex shader
+    //    //var fragmentShader = getShader(gl, "fragmentShader");
+    //    //var vertexShader = getShader(gl, "vertexShader");
+    //    var fragmentShader = createShader(gl, fragmentShaderSource, "fragment");
+    //    var vertexShader = createShader(gl, vertexShaderSource, "vertex");
+    //    // link them together into a new program
+    //    shaderProgram = gl.createProgram();
+    //    gl.attachShader(shaderProgram, vertexShader);
+    //    gl.attachShader(shaderProgram, fragmentShader);
+    //    gl.linkProgram(shaderProgram);
+    //    // get pointers to the shader params
+    //    shaderVertexPositionAttribute = gl.getAttribLocation(shaderProgram, "vertexPos");
+    //    gl.enableVertexAttribArray(shaderVertexPositionAttribute);
+    //    shaderVertexColorAttribute = gl.getAttribLocation(shaderProgram, "vertexColor");
+    //    gl.enableVertexAttribArray(shaderVertexColorAttribute);
 
-        shaderProjectionMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
-        shaderModelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
+    //    shaderProjectionMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
+    //    shaderModelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
 
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-            alert("Could not initialise shaders");
-        }
-    }
+    //    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+    //        alert("Could not initialise shaders");
+    //    }
+    //}
     function draw(gl, obj) {
         if (GlobalSquare) {
             // clear the background (with black)
@@ -163,9 +151,16 @@
         var gl = initWebGL(canvas);
         initViewport(gl, canvas);
         initMatrices();
-        //var square = createSquare(gl);
         createSquare(gl);
-        initShader(gl);
+        shaderProgram = initShader(gl, vertexShaderSource, fragmentShaderSource);
+        //Ponteiros para os parâmetros do shader
+        shaderVertexPositionAttribute = gl.getAttribLocation(shaderProgram, "vertexPos");
+        gl.enableVertexAttribArray(shaderVertexPositionAttribute);
+        shaderVertexColorAttribute = gl.getAttribLocation(shaderProgram, "vertexColor");
+        gl.enableVertexAttribArray(shaderVertexColorAttribute);
+        shaderProjectionMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
+        shaderModelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
+
         draw(gl, GlobalSquare);
         //Começa a renderização. ontimerCallback é a função onde a renderização ocorre
         var ontimerCallback = function () {
