@@ -25,19 +25,21 @@
     }
     // Create the vertex data for a square to be drawn
     function createSquare(gl) {
-
+        //Pede o arquivo que define meu objeto. Isso é uma operação assincrona,
+        //como todos os IOs em js
         var result = fetch('http://localhost:40000/testeObjeto.json')
-            .then(response => {
+            .then(response => {//Resolve ou rejeita a promessa de carga que foi feita
                 if (response.status === 200 || response.status === 0) {
                     return Promise.resolve(response);
                 } else {
                     return Promise.reject(new Error(response.statusText));
                 }
             })
-            .then(response => {
+            .then(response => {//Resposta é um json pro próximo método.
                 return response.json();
             })
             .then(function (data) {
+                //Aqui eu já tenho o json
                 var vertexBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
                 var testeArr1 = new Float32Array(data.geometry);
